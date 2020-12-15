@@ -4,10 +4,8 @@
 #include <string>
 #include <vector>
 
-using namespace std;
 template <typename T>
-
-string int_to_hex(T i, string prefix)
+std::string int_to_hex(T i, std::string prefix)
 {
     std::stringstream stream;
     stream << prefix
@@ -16,9 +14,9 @@ string int_to_hex(T i, string prefix)
     return stream.str();
 }
 
-string operand_to_string(string op, uint8_t* data, size_t* i)
+std::string operand_to_string(std::string op, uint8_t* data, size_t* i)
 {
-    string buf = "";
+    std::string buf = "";
 
     if (!op.compare("d8")) {
         *i = *i + 1;
@@ -54,10 +52,10 @@ string operand_to_string(string op, uint8_t* data, size_t* i)
     }
 }
 
-string lr35902::instruct_to_string(uint8_t instcode, uint8_t* data, size_t* i)
+std::string lr35902::instruct_to_string(uint8_t instcode, uint8_t* data, size_t* i)
 {
     instruction inst = instlist[instcode];
-    string res = "";
+    std::string res = "";
 
     res += int_to_hex(instcode, "0x") + "\t" + inst.name + "\t";
 
@@ -77,18 +75,18 @@ void hexdump(uint8_t* data, size_t size)
 {
     for (size_t i = 0; i < size; i++) {
         if (i % 16 == 0)
-            cout << "\n";
-        cout << int_to_hex(data[i], "") << " ";
+            std::cout << "\n";
+        std::cout << int_to_hex(data[i], "") << " ";
     }
-    cout << "\n\n";
+    std::cout << "\n\n";
 }
 
 void lr35902::disassemble(rom_t* rom)
 {
     uint8_t* data = rom->data;
     size_t romsize = rom->size;
-    vector<string> res;
-    string str;
+    std::vector<std::string> res;
+    std::string str;
 
     hexdump(data, romsize);
 
@@ -98,6 +96,6 @@ void lr35902::disassemble(rom_t* rom)
     }
 
     for (auto string : res) {
-        cout << string << '\n';
+        std::cout << string << '\n';
     }
 }

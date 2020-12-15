@@ -15,25 +15,30 @@ public:
 
     /********** REGISTERS *********/
 
-    union { //accumulator and flags
+    struct AF { //accumulator and flags
         uint8_t a; 
         uint8_t f; 
-    } af;
+    };
 
-    union { //user register
+    struct BC { //user register
         uint8_t b;
         uint8_t c;
-    } bc;
+    };
 
-    union { //user register
+    struct DE { //user register
         uint8_t d;
         uint8_t e;
-    } de;
+    };
 
-    union { //user register
+    struct HL { //user register
         uint8_t h;
         uint8_t l;
-    } hl;
+    };
+
+    AF af;
+    BC bc;
+    DE de;
+    HL hl;
 
     uint16_t sp; // Stack Pointer
     uint16_t pc; // Program Counter
@@ -83,7 +88,7 @@ public:
 
     /*****************************/
 
-    Bus bus;
+    Bus *bus;
 
     std::vector<instruction> instlist;
     std::vector<instruction> preflist;
@@ -92,7 +97,7 @@ public:
     std::vector<std::string> op8list;
     std::vector<std::string> op16list;
 
-    void registerBus(Bus bus);
+    void registerBus(Bus *bus);
 
     uint8_t *getRegister8(std::string name);
     uint16_t *getRegister16(std::string name);
@@ -111,6 +116,7 @@ public:
     void setFlag(FLAGSLR35902 flag, bool value);
 
     void disassemble(rom_t *data);
+    void step(void);
     std::string instruct_to_string(uint8_t inst, uint8_t *data, size_t *i);
 
     /******************************/

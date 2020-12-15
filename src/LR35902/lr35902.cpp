@@ -1,11 +1,12 @@
 #include "lr35902.h"
 #include "bus.h"
+#include <iostream>
 
 lr35902::~lr35902() {
     
 }
 
-void lr35902::registerBus(Bus newbus) {
+void lr35902::registerBus(Bus *newbus) {
     bus = newbus;
 }
 
@@ -21,12 +22,11 @@ void lr35902::setFlag(FLAGSLR35902 flag, bool value) {
     }
 }
 
-uint16_t lr35902::read16(uint16_t addr) {
-    return 0;
-}
-
-uint8_t lr35902::read8(uint16_t addr) {
-    return 0;
+void lr35902::step() {
+    uint8_t next = bus->read(pc++);
+    prepareOperands(next);
+    std::cout << "INST: " << (int) next << "\nSP: " << (int) sp << "\nPC:" << (int) pc << "\n";
+    (this->*instlist[next].operate)();
 }
 
 /***************************/
@@ -52,9 +52,9 @@ uint8_t lr35902::LDsp() {
 
 uint8_t lr35902::POP() {
     uint16_t temp = 0x0000;
-    temp |= bus.read(sp);
+    temp |= bus->read(sp);
     sp++;
-    temp |= (bus.read(sp) << 8);
+    temp |= (bus->read(sp) << 8);
     sp++;
     *op16_1 = temp;
     return 0;
@@ -62,9 +62,9 @@ uint8_t lr35902::POP() {
 
 uint8_t lr35902::PUSH() {
     sp--;
-    bus.write(sp, (uint8_t) *op16_1 >> 8);
+    bus->write(sp, (uint8_t) *op16_1 >> 8);
     sp--;
-    bus.write(sp, (uint8_t) *op16_1 & 0xFF);
+    bus->write(sp, (uint8_t) *op16_1 & 0xFF);
     return 0;
 }
 
@@ -125,7 +125,7 @@ uint8_t lr35902::ADD() {
 uint8_t lr35902::ADDw() {
     uint temp = *op16_1 + *op16_2;
     setFlag(C, temp & 0x10000);
-    setFlag(H, ((*op16_1 & 0xFFF) + (*op16_2 & 0xFFF) & 0x1000));
+    setFlag(H, (((*op16_1 & 0xFFF) + (*op16_2 & 0xFFF)) & 0x1000));
     setFlag(N, false);
     return 0;
 }
@@ -141,9 +141,9 @@ uint8_t lr35902::ADC() {
 }
 
 uint8_t lr35902::SUB() {
-    uint8_t temp = af.a - *op8_2;
-    setFlag(C, (*op8_2 > *op8_1));
-    setFlag(H, (((*op8_1 & 0xF) - (*op8_2 & 0xF)) < 0));
+    uint8_t temp = af.a - *op8_1;
+    setFlag(C, (*op8_1 > af.a));
+    setFlag(H, (((af.a & 0xF) - (*op8_1 & 0xF)) < 0));
     setFlag(N, true);
     setFlag(Z, temp == 0);
     af.a = temp;
@@ -153,7 +153,7 @@ uint8_t lr35902::SUB() {
 uint8_t lr35902::SBC() {
     uint8_t temp = *op8_1 - *op8_2 - getFlag(C);
     setFlag(C, (*op8_2 > *op8_1));
-    setFlag(H, (((*op8_1 & 0xF0) - (*op8_2 & 0xF0) >> 4) < 0));
+    setFlag(H, ((((*op8_1 & 0xF0) - (*op8_2 & 0xF0)) >> 4) < 0));
     setFlag(N, true);
     setFlag(Z, temp == 0);
     *op8_1 = temp;
@@ -161,7 +161,7 @@ uint8_t lr35902::SBC() {
 }
 
 uint8_t lr35902::AND() {
-    uint8_t temp = *op8_1 & *op8_2;
+    uint8_t temp = af.a & *op8_1;
     setFlag(C, false);
     setFlag(H, false);
     setFlag(N, true);
@@ -170,7 +170,7 @@ uint8_t lr35902::AND() {
 }
 
 uint8_t lr35902::OR() {
-    uint8_t temp = *op8_1 | *op8_2;
+    uint8_t temp = af.a | *op8_1;
     setFlag(C, false);
     setFlag(H, false);
     setFlag(N, true);
@@ -179,7 +179,7 @@ uint8_t lr35902::OR() {
 }
 
 uint8_t lr35902::XOR() {
-    uint8_t temp = *op8_1 ^ *op8_2;
+    uint8_t temp = af.a ^ *op8_1;
     setFlag(C, false);
     setFlag(H, false);
     setFlag(N, true);
@@ -188,9 +188,9 @@ uint8_t lr35902::XOR() {
 }
 
 uint8_t lr35902::CP() {
-    uint8_t temp = *op8_1 - *op8_2;
-    setFlag(C, (*op8_2 > *op8_1));
-    setFlag(H, (((*op8_1 & 0xF) - (*op8_2 & 0xF)) < 0));
+    uint8_t temp = af.a - *op8_1;
+    setFlag(C, (*op8_1 > af.a));
+    setFlag(H, (((af.a & 0xF) - (*op8_1 & 0xF)) < 0));
     setFlag(N, true);
     setFlag(Z, temp == 0);
     return 0;
