@@ -13,7 +13,8 @@ class SubWin {
 
     void draw(sf::Drawable *drawable);
     void clear(sf::Color color);
-    sf::Sprite *display();
+    sf::Vector2u getSize(void);
+    sf::Sprite *display(void);
 };
 
 #endif // __SUBWIN_H__

@@ -34,5 +34,8 @@ void Dmg::cpuTest() {
         if (getInput("Q")) {
             break;
         }
+        if (getInput("N")) {
+            cpu->step();
+        }
     }
 }

@@ -19,6 +19,9 @@
 #define ROMSIZE 0X7FFF
 #define RAMADDR 0xC000
 #define RAMSIZE 0x1FFF
+#define STKADDR 0xFF80
+#define STKSIZE 0x007E
+#define STKTOP 0xFFFF
 #define CHARSIZE 20
 
 class Dmg;

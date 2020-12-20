@@ -16,23 +16,23 @@ public:
     /********** REGISTERS *********/
 
     struct AF { //accumulator and flags
-        uint8_t a; 
         uint8_t f; 
+        uint8_t a; 
     };
 
     struct BC { //user register
-        uint8_t b;
         uint8_t c;
+        uint8_t b;
     };
 
     struct DE { //user register
-        uint8_t d;
         uint8_t e;
+        uint8_t d;
     };
 
     struct HL { //user register
-        uint8_t h;
         uint8_t l;
+        uint8_t h;
     };
 
     AF af;
@@ -116,8 +116,9 @@ public:
     void setFlag(FLAGSLR35902 flag, bool value);
 
     void disassemble(rom_t *data);
+    std::string disassemble10(uint16_t pc);
     void step(void);
-    std::string instruct_to_string(uint8_t inst, uint8_t *data, size_t *i);
+    std::string instruct_to_string(uint8_t inst, uint8_t *data, uint16_t *i);
 
     /******************************/
 
@@ -146,9 +147,11 @@ public:
     uint8_t RLA(); uint8_t RLCA(); // Rotation/Shift
     uint8_t RRA(); uint8_t RRCA();
 
-    uint8_t JR(); uint8_t JP();
+    uint8_t JR(); uint8_t JRsp();
+    uint8_t JP(); uint8_t JPsp();
     uint8_t RET(); uint8_t RETI();
     uint8_t RST(); uint8_t CALL();
+    uint8_t CALLsp();
 
     // Prefix
 

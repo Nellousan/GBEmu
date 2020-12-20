@@ -1,6 +1,12 @@
 #include "lr35902.h"
 #include <iostream>
 
+static bool is_number(std::string str) {
+    if (str[0] > '0' && str[0] < '9')
+        return true;
+    return false;
+}
+
 uint8_t *lr35902::getRegister8(std::string name) {
     int vecsize = r8list.size();
     for (int i = 0; i < vecsize; i++)
@@ -26,15 +32,15 @@ bool lr35902::prepareOperand8(std::string opn, uint8_t** op) {
         return true;
     if (opn[0] == '(') {
         opn.erase(opn.begin());
-        opn.erase(opn.end());
+        opn.erase(opn.size() - 1);
         if (opn.find("HL") != std::string::npos) {
             if (opn[opn.size() - 1] == '+') {
-                opn.erase(opn.end());
+                opn.erase(opn.size() - 1);
                 temp = getRegister16(opn);
                 *op = bus->readPtr(*temp);
                 *temp = *temp + 1;
             } else if (opn[opn.size() - 1] == '-') {
-                opn.erase(opn.end());
+                opn.erase(opn.size() - 1);
                 temp = getRegister16(opn);
                 *op = bus->readPtr(*temp);
                 *temp = *temp - 1;
@@ -50,22 +56,28 @@ bool lr35902::prepareOperand8(std::string opn, uint8_t** op) {
             temp8_1 = bus->read(pc + 1);
             pc++;
             *op = bus->readPtr(temp8_1 + 0xFF00);
+        } else if (!opn.compare("C")) {
+            temp8_1 = bus->read(*getRegister8(opn));
+            *op = &temp8_1;
         }
     } else if (!opn.compare("d8")) {
-        temp8_1 = bus->read(pc + 1);
+        temp8_1 = bus->read(pc);
         *op = &temp8_1;
         pc++;
     } else if (!opn.compare("Z")) {
         temp8_1 = getFlag(Z);
         *op = &temp8_1;
     } else if (!opn.compare("NZ")) {
-        temp8_1 = ~(getFlag(Z));
+        temp8_1 = 0x01 & ~(getFlag(Z));
         *op = &temp8_1;
-    } else if (!opn.compare("C")) {
+    } else if (!opn.compare("Ca")) {
         temp8_1 = getFlag(C);
         *op = &temp8_1;
     } else if (!opn.compare("NC")) {
-        temp8_1 = ~(getFlag(C));
+        temp8_1 = 0x01 & ~(getFlag(C));
+        *op = &temp8_1;
+    } else if (is_number(opn)) {
+        temp8_1 = std::stoi(opn);
         *op = &temp8_1;
     }
     if (*op == nullptr) {
@@ -112,7 +124,10 @@ bool lr35902::isOperand16(std::string name) {
 void lr35902::prepareOperands(uint8_t instcode) {
     instruction inst = instlist[instcode];
 
-    std::cout << inst.op1 + "\n" + inst.op2 + "\n";
+    if (!inst.name.compare("PREFIX")) {
+        pc++;
+        inst = preflist[bus->read(pc)];
+    }
 
     if (!inst.op1.compare("")) {
         op8_1 = 0;

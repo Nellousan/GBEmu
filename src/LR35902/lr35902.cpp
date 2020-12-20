@@ -25,7 +25,6 @@ void lr35902::setFlag(FLAGSLR35902 flag, bool value) {
 void lr35902::step() {
     uint8_t next = bus->read(pc++);
     prepareOperands(next);
-    std::cout << "INST: " << (int) next << "\nSP: " << (int) sp << "\nPC:" << (int) pc << "\n";
     (this->*instlist[next].operate)();
 }
 
@@ -52,19 +51,15 @@ uint8_t lr35902::LDsp() {
 
 uint8_t lr35902::POP() {
     uint16_t temp = 0x0000;
-    temp |= bus->read(sp);
-    sp++;
-    temp |= (bus->read(sp) << 8);
-    sp++;
+    temp |= bus->read(sp++);
+    temp |= (bus->read(sp++) << 8);
     *op16_1 = temp;
     return 0;
 }
 
 uint8_t lr35902::PUSH() {
-    sp--;
-    bus->write(sp, (uint8_t) *op16_1 >> 8);
-    sp--;
-    bus->write(sp, (uint8_t) *op16_1 & 0xFF);
+    bus->write(--sp, (uint8_t) ((*op16_1) >> 8));
+    bus->write(--sp, (uint8_t) ((*op16_1) & 0xFF));
     return 0;
 }
 
@@ -89,6 +84,7 @@ uint8_t lr35902::EI() {
 }
 
 uint8_t lr35902::PREFIX() {
+    (this->*preflist[bus->read(pc)].operate)();
     return 0;
 }
 
@@ -211,7 +207,7 @@ uint8_t lr35902::CPL() {
 }
 
 uint8_t lr35902::CCF() {
-    setFlag(C, ~(getFlag(C)));
+    setFlag(C, 0x00 & ~(getFlag(C)));
     return 0;
 }
 
@@ -260,14 +256,34 @@ uint8_t lr35902::RRCA() {
 }
 
 uint8_t lr35902::JR() {
+    if (*op8_1) {
+        pc += (int8_t)(*op8_2);
+    }
+    return 0;
+}
+
+uint8_t lr35902::JRsp() {
+    pc += (int8_t)(*op8_2);
     return 0;
 }
 
 uint8_t lr35902::JP() {
+    if (*op8_1) {
+        pc = *op16_2;
+    }
+    return 0;
+}
+
+uint8_t lr35902::JPsp() {
+    pc = *op16_1;
     return 0;
 }
 
 uint8_t lr35902::RET() {
+    uint16_t temp = 0x0000;
+    temp |= bus->read(sp++);
+    temp |= (bus->read(sp++) << 8);
+    pc = temp;
     return 0;
 }
 
@@ -280,6 +296,18 @@ uint8_t lr35902::RST() {
 }
 
 uint8_t lr35902::CALL() {
+    if (*op8_1) {
+        bus->write(--sp, (uint8_t) (pc >> 8));
+        bus->write(--sp, (uint8_t) (pc & 0xFF));
+        pc = *op16_1;
+    }
+    return 0;
+}
+
+uint8_t lr35902::CALLsp() {
+    bus->write(--sp, (uint8_t) (pc >> 8));
+    bus->write(--sp, (uint8_t) (pc & 0xFF));
+    pc = *op16_1;
     return 0;
 }
 

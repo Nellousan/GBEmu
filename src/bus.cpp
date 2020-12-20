@@ -14,7 +14,7 @@ Bus::~Bus() {
 }
 
 void Bus::loadRom(rom_t *rom) {
-    for (int i = 0; i < rom->size; i++) {
+    for (size_t i = 0; i < rom->size; i++) {
         mem[i] = rom->data[i];
     }
 }

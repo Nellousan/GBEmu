@@ -14,7 +14,7 @@ std::string int_to_hex(T i, std::string prefix)
     return stream.str();
 }
 
-std::string operand_to_string(std::string op, uint8_t* data, size_t* i)
+std::string operand_to_string(std::string op, uint8_t* data, uint16_t* i)
 {
     std::string buf = "";
 
@@ -52,21 +52,23 @@ std::string operand_to_string(std::string op, uint8_t* data, size_t* i)
     }
 }
 
-std::string lr35902::instruct_to_string(uint8_t instcode, uint8_t* data, size_t* i)
+std::string lr35902::instruct_to_string(uint8_t instcode, uint8_t* data, uint16_t* i)
 {
     instruction inst = instlist[instcode];
     std::string res = "";
 
-    res += int_to_hex(instcode, "0x") + "\t" + inst.name + "\t";
+    if (!inst.name.compare("PREFIX")) {
+        *i = *i + 1;
+        inst = preflist[data[*i]];
+    }
+
+    res += inst.name + "\t";
 
     if (inst.op1.compare("")) {
         res += operand_to_string(inst.op1, data, i);
     }
     if (inst.op2.compare("")) {
         res += " , " + operand_to_string(inst.op2, data, i);
-    }
-    if (!inst.name.compare("PREFIX")) {
-        *i = *i + 1;
     }
     return res;
 }
@@ -81,16 +83,27 @@ void hexdump(uint8_t* data, size_t size)
     std::cout << "\n\n";
 }
 
+std::string lr35902::disassemble10(uint16_t pc) 
+{
+    std::string str = "";
+
+    for (uint16_t i = pc, j = 0; j < 10; i++, j++) {
+        str += int_to_hex(i, "$") + "\t";
+        str += instruct_to_string(bus->mem[i], bus->mem, &i) + "\n";
+    }
+    return str;
+}
+
 void lr35902::disassemble(rom_t* rom)
 {
     uint8_t* data = rom->data;
-    size_t romsize = rom->size;
+    uint16_t romsize = rom->size;
     std::vector<std::string> res;
-    std::string str;
+    std::string str = "";
 
     hexdump(data, romsize);
 
-    for (size_t i = 0; i < romsize; i++) {
+    for (uint16_t i = 0; i < romsize; i++) {
         str += instruct_to_string(data[i], data, &i);
         res.push_back(str);
     }
