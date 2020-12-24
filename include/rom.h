@@ -9,7 +9,7 @@ typedef struct romstruct {
     size_t size;
 } rom_t;
 
-rom_t* load_file(char* path);
+rom_t* load_file(const char* path);
 
 #endif // __ROM_H__
 

@@ -18,8 +18,8 @@ struct XV {
 
 int main(int argc, char** argv)
 {
-    //options* option = new options(argc, argv);
-    rom_t *rom = load_file(argv[1]);
+    options *option = new options(argc, argv);
+    rom_t *rom = load_file(option->rom.c_str());
 
     Dmg *dmg = new Dmg;
 
@@ -27,6 +27,7 @@ int main(int argc, char** argv)
     dmg->cpuTest();
 
     a_malloc(A_MALLOC_FREE);
+    delete(option);
     delete(dmg);
     return 0;
 }

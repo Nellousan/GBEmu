@@ -9,6 +9,13 @@ bool Dmg::getInput(std::string str) {
     return false;
 }
 
+bool Dmg::isPressed(std::string str) {
+    auto ipt = inputs.find(str);
+    if (ipt != inputs.end()) {
+        return ipt->second.justPressed | ipt->second.alreadyPressed;
+    }
+}
+
 void Dmg::checkInput(Dmg::input *ipt)
 {
     if (sf::Keyboard::isKeyPressed(ipt->key)) {

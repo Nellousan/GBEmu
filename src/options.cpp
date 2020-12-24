@@ -21,7 +21,7 @@ options::options(int argc, char** argv)
     if (argc < 2) {
         optionsError(argv);
     }
-    while ((opt = getopt(argc, argv, "r:i:")) != -1) {
+    while ((opt = getopt(argc, argv, "r:")) != -1) {
         switch (opt) {
         case 'r':
             rom = string(optarg);
@@ -33,19 +33,19 @@ options::options(int argc, char** argv)
             optionsError(argv);
         }
     }
-    if (controlMap.empty() || rom.empty()) {
+    if (rom.empty()) {
         optionsError(argv);
     }
 }
 
 void options::optionsError(char** argv)
 {
-    fprintf(stderr, "Usage: %s [-r rom_path.nes] [-i input_map_path.json]\n", argv[0]);
+    fprintf(stderr, "Usage: %s [-r rom_path.gb]\n", argv[0]);
     exit(EXIT_FAILURE);
 }
 
 ostream& operator<<(ostream& os, const options& opt)
 {
-    os << "[Rom=" << opt.rom << ",controlMap=" << opt.controlMap << "]";
+    os << "[Rom=" << opt.rom << "]";
     return os;
 }

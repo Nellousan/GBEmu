@@ -112,7 +112,7 @@ public:
     void write16(uint16_t addr, uint16_t data);
     void write8(uint16_t addr, uint8_t data);
     
-    uint8_t getFlag(FLAGSLR35902 flag);
+    bool getFlag(FLAGSLR35902 flag);
     void setFlag(FLAGSLR35902 flag, bool value);
 
     void disassemble(rom_t *data);

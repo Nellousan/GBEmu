@@ -8,7 +8,7 @@
 #include "rom.h"
 #include "a_malloc.h"
 
-rom_t* load_file(char* path)
+rom_t* load_file(const char* path)
 {
     int fd = open(path, O_RDONLY);
     rom_t *rom = (rom_t*) a_malloc(sizeof(rom_t));

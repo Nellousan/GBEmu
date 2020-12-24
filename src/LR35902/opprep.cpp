@@ -65,17 +65,18 @@ bool lr35902::prepareOperand8(std::string opn, uint8_t** op) {
         *op = &temp8_1;
         pc++;
     } else if (!opn.compare("Z")) {
-        temp8_1 = getFlag(Z);
-        *op = &temp8_1;
+        temp8_2 = getFlag(Z);
+        *op = &temp8_2;
     } else if (!opn.compare("NZ")) {
-        temp8_1 = 0x01 & ~(getFlag(Z));
-        *op = &temp8_1;
+        temp8_2 = !(getFlag(Z));
+        *op = &temp8_2;
+        //std::cout << (int) temp8_1 << " " << (int) (*op8_1) << " " << (int)(getFlag(Z)) << "\n";
     } else if (!opn.compare("Ca")) {
-        temp8_1 = getFlag(C);
-        *op = &temp8_1;
+        temp8_2 = getFlag(C);
+        *op = &temp8_2;
     } else if (!opn.compare("NC")) {
-        temp8_1 = 0x01 & ~(getFlag(C));
-        *op = &temp8_1;
+        temp8_2 = !(getFlag(C));
+        *op = &temp8_2;
     } else if (is_number(opn)) {
         temp8_1 = std::stoi(opn);
         *op = &temp8_1;

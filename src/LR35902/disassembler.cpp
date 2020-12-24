@@ -10,7 +10,7 @@ std::string int_to_hex(T i, std::string prefix)
     std::stringstream stream;
     stream << prefix
            << std::setfill('0') << std::setw(sizeof(T) * 2)
-           << std::hex << (0xFF & i);
+           << std::hex << (0xFFFF & i);
     return stream.str();
 }
 
@@ -43,7 +43,8 @@ std::string operand_to_string(std::string op, uint8_t* data, uint16_t* i)
         return buf;
     } else if (!op.compare("(a8)")) {
         *i = *i + 1;
-        return op;
+        buf = "(" + int_to_hex(data[*i], "$") + ")";
+        return buf;
     } else if (!op.compare("(a16)")) {
         *i = *i + 2;
         return op;

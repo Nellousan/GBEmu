@@ -10,8 +10,8 @@ void lr35902::registerBus(Bus *newbus) {
     bus = newbus;
 }
 
-uint8_t lr35902::getFlag(FLAGSLR35902 flag) {
-    return ((af.f & flag) > 0);
+bool lr35902::getFlag(FLAGSLR35902 flag) {
+    return (bool)((af.f & flag) > 0);
 }
 
 void lr35902::setFlag(FLAGSLR35902 flag, bool value) {
@@ -72,14 +72,17 @@ uint8_t lr35902::STOP() {
 }
 
 uint8_t lr35902::HALT() {
+    std::cout << "HALT\n";
     return 0;
 }
 
 uint8_t lr35902::DI() {
+    std::cout << "DI\n";
     return 0;
 }
 
 uint8_t lr35902::EI() {
+    std::cout << "EI\n";
     return 0;
 }
 
@@ -90,21 +93,33 @@ uint8_t lr35902::PREFIX() {
 
 uint8_t lr35902::INC() {
     *op8_1 = *op8_1 + 1;
+    setFlag(H, ((*op8_1 & 0xF) + (0x01)) & 0x10);
+    setFlag(N, true);
+    setFlag(Z, (*op8_1) == 0);
     return 0;
 }
 
 uint8_t lr35902::INCw() {
     *op16_1 = *op16_1 + 1;
+    setFlag(H, ((*op16_1 & 0xF) + (0x0001)) & 0x1000);
+    setFlag(N, true);
+    setFlag(Z, (*op16_1) == 0);
     return 0;
 }
 
 uint8_t lr35902::DEC() {
     *op8_1 = *op8_1 - 1;
+    setFlag(H, ((*op8_1 & 0xF) - (0x01)) & 0x10);
+    setFlag(N, true);
+    setFlag(Z, (*op8_1) == 0);
     return 0;
 }
 
 uint8_t lr35902::DECw() {
     *op16_1 = *op16_1 - 1;
+    setFlag(H, ((*op16_1 & 0xF) - (0x0001)) & 0x1000);
+    setFlag(N, true);
+    setFlag(Z, (*op16_1) == 0);
     return 0;
 }
 
@@ -193,6 +208,7 @@ uint8_t lr35902::CP() {
 }
 
 uint8_t lr35902::DAA() {
+    std::cout << "DAA\n";
     return 0;
 }
 
@@ -207,7 +223,7 @@ uint8_t lr35902::CPL() {
 }
 
 uint8_t lr35902::CCF() {
-    setFlag(C, 0x00 & ~(getFlag(C)));
+    setFlag(C, false);
     return 0;
 }
 
@@ -288,10 +304,15 @@ uint8_t lr35902::RET() {
 }
 
 uint8_t lr35902::RETI() {
+    uint16_t temp = 0x0000;
+    temp |= bus->read(sp++);
+    temp |= (bus->read(sp++) << 8);
+    pc = temp;
     return 0;
 }
 
 uint8_t lr35902::RST() {
+    std::cout << "RST\n";
     return 0;
 }
 
