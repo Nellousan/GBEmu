@@ -14,6 +14,7 @@ bool Dmg::isPressed(std::string str) {
     if (ipt != inputs.end()) {
         return ipt->second.justPressed | ipt->second.alreadyPressed;
     }
+    return false;
 }
 
 void Dmg::checkInput(Dmg::input *ipt)

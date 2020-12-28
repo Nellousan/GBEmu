@@ -63,6 +63,8 @@ public:
     sf::Event event;
     double framerate;
     std::chrono::system_clock::time_point lastFrame;
+    double tickrate;
+    std::chrono::system_clock::time_point lastTick;
 
     lr35902 *cpu;
     Bus *bus;
@@ -81,6 +83,8 @@ public:
     std::multimap<std::string, input> inputs;
 
     /************************/
+
+    bool isRunning();
 
     void manageEvent();
     void checkInput(Dmg::input *ipt);

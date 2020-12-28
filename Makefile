@@ -15,7 +15,7 @@ SRC 	=	$(wildcard $(SRCDIR)/*.cpp) $(wildcard $(SRCDIR)/*/*.cpp)
 
 OBJ	=	$(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
-CFLAGS	=	-Wall -Wextra -I./$(IDIR) -I./$(IDIR)/LR35902 -std=c++17 -g 
+CFLAGS	=	-Wall -Wextra -I./$(IDIR) -I./$(IDIR)/LR35902 -std=c++17
 
 LDFLAGS	=	-lsfml-graphics -lsfml-window -lsfml-system
 
