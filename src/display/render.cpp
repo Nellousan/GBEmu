@@ -32,13 +32,13 @@ debugWindow::debugWindow(Dmg *acc) {
 }
 
 debugWindow::~debugWindow() {
-    delete(mainWin);
     delete(romWin);
     delete(ramWin);
     delete(stkWin);
     delete(asmWin);
     delete(regWin);
     delete(text);
+    delete(mainWin);
 }
 
 void debugWindow::registerAccess(Dmg *newaccess) {
@@ -49,6 +49,7 @@ sf::Sprite *debugWindow::drawRom() {
     sf::Vector2u size = romWin->getSize();
     sf::RectangleShape shape(sf::Vector2f(size.x - 10, size.y - 10));
     std::string str;
+    uint8_t temp;
     romWin->clear(sf::Color::Blue);
     for (uint16_t i = 0; i < 16; i++) {
         str = int_to_hex((uint16_t)(i * 16), "$");
@@ -57,7 +58,10 @@ sf::Sprite *debugWindow::drawRom() {
         romWin->draw(text);
         str = "";
         for (uint16_t j = 0; j < 16; j++) {
-            str += int_to_hex(access->bus->mem[i * 16 + j], "") + " ";
+            access->memMutex.lock();
+            temp = access->bus->mem[i * 16 + j];
+            access->memMutex.unlock();
+            str += int_to_hex(temp, "") + " ";
         }
         text->setString(str);
         text->setPosition(5 * CHARSIZE, i * CHARSIZE);
@@ -75,6 +79,7 @@ sf::Sprite *debugWindow::drawRam() {
     sf::Vector2u size = ramWin->getSize();
     sf::RectangleShape shape(sf::Vector2f(size.x - 10, size.y - 5));
     std::string str;
+    uint8_t temp;
     ramWin->clear(sf::Color::Blue);
     for (uint16_t i = 0; i < 16; i++) {
         str = int_to_hex((uint16_t)(i * 16 + RAMADDR), "$");
@@ -83,7 +88,10 @@ sf::Sprite *debugWindow::drawRam() {
         ramWin->draw(text);
         str = "";
         for (uint16_t j = 0; j < 16; j++) {
-            str += int_to_hex(access->bus->mem[i * 16 + j + RAMADDR], "") + " ";
+            access->memMutex.lock();
+            temp = access->bus->mem[i * 16 + j + RAMADDR];
+            access->memMutex.unlock();
+            str += int_to_hex(temp, "") + " ";
         }
         text->setString(str);
         text->setPosition(5 * CHARSIZE, i * CHARSIZE);
@@ -102,12 +110,28 @@ sf::Sprite *debugWindow::drawReg() {
     sf::RectangleShape shape(sf::Vector2f(size.x - 5, size.y - 5));
     std::string str = "";
     lr35902 *cpu = access->cpu;
+    uint8_t a, f, b, c, d, e, h, l;
+    uint16_t pc, sp;
     regWin->clear(sf::Color::Blue);
-    str += "[A]  " + int_to_hex(cpu->af.a, "") + "\t  [F]  " + int_to_hex(cpu->af.f, "") + "\n";
-    str += "[B]  " + int_to_hex(cpu->bc.b, "") + "\t  [C]  " + int_to_hex(cpu->bc.c, "") + "\n";
-    str += "[D]  " + int_to_hex(cpu->de.d, "") + "\t  [E]  " + int_to_hex(cpu->de.e, "") + "\n";
-    str += "[H]  " + int_to_hex(cpu->hl.h, "") + "\t  [L]  " + int_to_hex(cpu->hl.l, "") + "\n";
-    str += "[PC] " + int_to_hex(cpu->pc, "") + "\t[SP] " + int_to_hex(cpu->sp, "") + "\n";
+
+    access->regMutex.lock();
+    a = cpu->af.a;
+    f = cpu->af.f;
+    b = cpu->bc.b;
+    c = cpu->bc.c;
+    d = cpu->de.d;
+    e = cpu->de.e;
+    h = cpu->hl.h;
+    l = cpu->hl.l;
+    pc = cpu->pc;
+    sp = cpu->sp;
+    access->regMutex.unlock();
+
+    str += "[A]  " + int_to_hex(a, "") + "\t  [F]  " + int_to_hex(f, "") + "\n";
+    str += "[B]  " + int_to_hex(b, "") + "\t  [C]  " + int_to_hex(c, "") + "\n";
+    str += "[D]  " + int_to_hex(d, "") + "\t  [E]  " + int_to_hex(e, "") + "\n";
+    str += "[H]  " + int_to_hex(h, "") + "\t  [L]  " + int_to_hex(l, "") + "\n";
+    str += "[PC] " + int_to_hex(pc, "") + "\t[SP] " + int_to_hex(sp, "") + "\n";
     text->setString(str);
     text->setPosition(10, 10);
     regWin->draw(text);
@@ -122,7 +146,15 @@ sf::Sprite *debugWindow::drawReg() {
 sf::Sprite *debugWindow::drawAsm() {
     sf::Vector2u size = asmWin->getSize();
     sf::RectangleShape shape(sf::Vector2f(size.x - 10, size.y - 5));
-    std::string str = access->cpu->disassemble10(access->cpu->pc);
+    std::string str;
+    uint16_t temp;
+
+    access->regMutex.lock();
+    temp = access->cpu->pc;
+    access->regMutex.unlock();
+
+    str = access->cpu->disassemble10(temp);
+
     asmWin->clear(sf::Color::Blue);
     text->setString(str);
     text->setPosition(15, 5);
@@ -139,6 +171,7 @@ sf::Sprite *debugWindow::drawStk() {
     sf::Vector2u size = stkWin->getSize();
     sf::RectangleShape shape(sf::Vector2f(size.x - 10, size.y - 5));
     std::string str = "";
+    uint8_t temp;
     stkWin->clear(sf::Color::Blue);
     for (uint16_t i = 0; i < 16; i++) {
         str = int_to_hex((uint16_t)(STKTOP - (i * 16)), "$");
@@ -147,7 +180,11 @@ sf::Sprite *debugWindow::drawStk() {
         stkWin->draw(text);
         str = "";
         for (uint16_t j = 0; j < 16; j++) {
-            str += int_to_hex(access->bus->mem[STKTOP - (i * 16 + j)], "") + " ";
+            access->memMutex.lock();
+            temp = access->bus->mem[STKTOP - (i * 16 + j)];
+            access->memMutex.unlock();
+            str += int_to_hex(temp, "") + " ";
+
         }
         text->setString(str);
         text->setPosition(5 * CHARSIZE, i * CHARSIZE);

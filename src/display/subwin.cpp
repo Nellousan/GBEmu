@@ -10,7 +10,7 @@ SubWin::SubWin(const sf::Vector2f size, const sf::Vector2f pos) {
 }
 
 SubWin::~SubWin() {
-    delete(tex);
+    //delete(tex);
     delete(spr);
 }
 

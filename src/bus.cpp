@@ -13,20 +13,36 @@ Bus::~Bus() {
     free(mem);
 }
 
+void Bus::registerMutexes(std::mutex *mem) {
+    memMutex = mem;
+}
+
 void Bus::loadRom(rom_t *rom) {
+    memMutex->lock();
     for (size_t i = 0; i < rom->size; i++) {
         mem[i] = rom->data[i];
     }
+    memMutex->unlock();
 }
 
 void Bus::write(uint16_t addr, uint8_t data) {
+    memMutex->lock();
     mem[addr] = data;
+    memMutex->unlock();
 }
 
 uint8_t Bus::read(uint16_t addr) {
-    return mem[addr];
+    uint8_t temp;
+    memMutex->lock();
+    temp = mem[addr];
+    memMutex->unlock();
+    return temp;
 }
 
 uint8_t *Bus::readPtr(uint16_t addr) {
-    return &mem[addr];
+    uint8_t *temp;
+    memMutex->lock();
+    temp = &mem[addr];
+    memMutex->unlock();
+    return temp;
 }

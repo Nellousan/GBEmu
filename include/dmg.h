@@ -12,6 +12,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
 #include <chrono>
+#include <mutex>
 
 #define WINH 1000
 #define WINW 1500
@@ -65,6 +66,10 @@ public:
     std::chrono::system_clock::time_point lastFrame;
     double tickrate;
     std::chrono::system_clock::time_point lastTick;
+    bool stopThreads;
+
+    std::mutex memMutex;
+    std::mutex regMutex;
 
     lr35902 *cpu;
     Bus *bus;
@@ -90,6 +95,8 @@ public:
     void checkInput(Dmg::input *ipt);
     bool getInput(std::string str);
     bool isPressed(std::string str);
+
+    //void renderRunnable(void);
 
     void setFramerateLimit(double framerate);
     void winRender(void);

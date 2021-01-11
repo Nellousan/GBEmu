@@ -4,7 +4,11 @@
 bool Dmg::getInput(std::string str) {
     auto ipt = inputs.find(str);
     if (ipt != inputs.end()) {
-        return ipt->second.justPressed;
+        if (ipt->second.justPressed) {
+            ipt->second.alreadyPressed = true;
+            ipt->second.justPressed = false;
+            return true;
+        }
     }
     return false;
 }
@@ -20,10 +24,7 @@ bool Dmg::isPressed(std::string str) {
 void Dmg::checkInput(Dmg::input *ipt)
 {
     if (sf::Keyboard::isKeyPressed(ipt->key)) {
-        if (ipt->justPressed == true) {
-            ipt->justPressed = false;
-            ipt->alreadyPressed = true;
-        } else if (ipt->alreadyPressed == false) {
+        if (ipt->alreadyPressed == false) {
             ipt->justPressed = true;
         }
     } else {

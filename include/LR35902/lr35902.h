@@ -5,6 +5,8 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <thread>
+#include <mutex>
 #include "rom.h"
 #include "bus.h"
 
@@ -97,7 +99,16 @@ public:
     std::vector<std::string> op8list;
     std::vector<std::string> op16list;
 
+    std::mutex *memMutex;
+    std::mutex *regMutex;
+
     void registerBus(Bus *bus);
+    void registerMutexes(std::mutex *mem, std::mutex *reg);
+
+    template <typename T>
+    void setVal(T *v1, T *v2);
+    void mutLock(void);
+    void mutUnlock(void);
 
     uint8_t *getRegister8(std::string name);
     uint16_t *getRegister16(std::string name);

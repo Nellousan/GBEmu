@@ -2,6 +2,7 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
+#include <thread>
 
 Dmg::Dmg() {
     cpu = new lr35902;
@@ -15,6 +16,9 @@ Dmg::Dmg() {
     tickrate = 4.194304f * pow(10.0f, 6.0f);
     lastFrame = std::chrono::system_clock::now();
     lastTick = std::chrono::system_clock::now();
+    stopThreads = false;
+    cpu->registerMutexes(&memMutex, &regMutex);
+    bus->registerMutexes(&memMutex);
     inputs = {
         {"N", {sf::Keyboard::N, false, false}},
         {"R", {sf::Keyboard::R, false, false}},
@@ -26,9 +30,8 @@ Dmg::Dmg() {
 Dmg::~Dmg() {
     delete(cpu);
     delete(bus);
-    window->close();
-    delete(window);
     delete(debugRender);
+    delete(window);
     delete(font);
 }
 
@@ -50,7 +53,7 @@ void Dmg::winRender() {
 bool Dmg::isRunning() {
     std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
     std::chrono::duration<double, std::milli> work_time = t - lastTick;
-    std::cout << "Work Time: " << work_time.count() << "\n";
+//    std::cout << "Work Time: " << work_time.count() << "\n";
     if (work_time.count() < (1000.0f / tickrate)) {
         std::cout << "working too fast!\n";
     }
@@ -58,11 +61,20 @@ bool Dmg::isRunning() {
     return true & window->isOpen();
 }
 
+void renderRunnable(Dmg *dmg) {
+    while (dmg->window->isOpen() && dmg->stopThreads == false) {
+        dmg->manageEvent();
+        dmg->winRender();
+    }
+}
+
 void Dmg::cpuTest() {
+    std::thread t(renderRunnable, this);
     while (isRunning()) {
         //manageEvent();
         //winRender();
         if (getInput("Q")) {
+            stopThreads = true;
             break;
         }
         if (!isPressed("N")) {
@@ -71,4 +83,6 @@ void Dmg::cpuTest() {
             cpu->step();
         }
     }
+    t.join();
+    window->close();
 }
